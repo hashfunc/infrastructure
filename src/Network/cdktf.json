@@ -1,0 +1,9 @@
+{
+  "language": "csharp",
+  "app": "dotnet run --project Network.fsproj",
+  "projectId": "660bbea7-4218-4a82-97cf-597907ff50b9",
+  "sendCrashReports": "false",
+  "terraformProviders": [],
+  "terraformModules": [],
+  "context": {}
+}
