@@ -8,9 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="HashiCorp.Cdktf" Version="0.20.8" />
+    <PackageReference Include="HashiCorp.Cdktf.Providers.Aws" Version="19.33.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="*.fs" />
+    <Compile Include="./Stack/*.fs" />
+    <Compile Include="Network.fs" />
   </ItemGroup>
 </Project>
