@@ -27,7 +27,7 @@ let DEFAULT_AZ_ID_LIST = [| "apne2-az1"; "apne2-az3" |]
 let createTagWithName name = Map [ ("Name", name) ]
 
 
-type VPCStack(scope: Construct, id: string, name: string) as self =
+type VPCStack(scope: Construct, id: string) as self =
     inherit TerraformStack(scope, id)
 
     do

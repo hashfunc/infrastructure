@@ -3,10 +3,10 @@ open HashiCorp.Cdktf
 open Stack
 
 [<EntryPoint>]
-let main argv =
+let main _ =
     let app = App()
 
-    Stack.VPCStack(app, "hashfunc-vpc", "hashfunc") |> ignore
+    VPCStack(app, "hashfunc-vpc") |> ignore
 
     app.Synth()
     0
