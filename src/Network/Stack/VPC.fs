@@ -2,13 +2,7 @@ module Stack
 
 open Constructs
 open HashiCorp.Cdktf
-open HashiCorp.Cdktf.Providers.Aws.Eip
-open HashiCorp.Cdktf.Providers.Aws.InternetGateway
-open HashiCorp.Cdktf.Providers.Aws.NatGateway
-open HashiCorp.Cdktf.Providers.Aws.Provider
-open HashiCorp.Cdktf.Providers.Aws.RouteTable
-open HashiCorp.Cdktf.Providers.Aws.Subnet
-open HashiCorp.Cdktf.Providers.Aws.Vpc
+open HashiCorp.Cdktf.Providers
 
 [<Literal>]
 let DEFAULT_AWS_REGION = "ap-northeast-2"
@@ -31,7 +25,8 @@ type VPCStack(scope: Construct, id: string) as self =
     inherit TerraformStack(scope, id)
 
     do
-        AwsProvider(self, id, AwsProviderConfig(Region = DEFAULT_AWS_REGION)) |> ignore
+        Aws.Provider.AwsProvider(self, id, Aws.Provider.AwsProviderConfig(Region = DEFAULT_AWS_REGION))
+        |> ignore
 
         let vpc = self.NewVpc $"vpc-main"
 
@@ -57,50 +52,62 @@ type VPCStack(scope: Construct, id: string) as self =
         subnets.Item("private-main")
         |> Array.iter (fun subnet -> self.NewPrivateRouteTable(subnet, nat) |> ignore)
 
-    member self.NewVpc(name: string) : Vpc =
+    member self.NewVpc(name: string) : Aws.Vpc.Vpc =
         let config =
-            VpcConfig(CidrBlock = DEFAULT_VPC_CIDR, EnableDnsHostnames = true, Tags = createTagWithName name)
+            Aws.Vpc.VpcConfig(CidrBlock = DEFAULT_VPC_CIDR, EnableDnsHostnames = true, Tags = createTagWithName name)
 
-        Vpc(self, name, config)
+        Aws.Vpc.Vpc(self, name, config)
 
-    member self.NewInternetGateway(name: string, vpc: Vpc) : InternetGateway =
-        let config = InternetGatewayConfig(VpcId = vpc.Id, Tags = createTagWithName name)
-
-        InternetGateway(self, name, config)
-
-    member self.NewSubnet(name: string, vpc: Vpc, azId: string, cidr: string) : Subnet =
+    member self.NewInternetGateway(name: string, vpc: Aws.Vpc.Vpc) : Aws.InternetGateway.InternetGateway =
         let config =
-            SubnetConfig(VpcId = vpc.Id, CidrBlock = cidr, AvailabilityZoneId = azId, Tags = createTagWithName name)
+            Aws.InternetGateway.InternetGatewayConfig(VpcId = vpc.Id, Tags = createTagWithName name)
 
-        Subnet(self, name, config)
+        Aws.InternetGateway.InternetGateway(self, name, config)
 
-    member self.NewPublicRouteTable(subnet: Subnet, gateway: InternetGateway) : RouteTable =
+    member self.NewSubnet(name: string, vpc: Aws.Vpc.Vpc, azId: string, cidr: string) : Aws.Subnet.Subnet =
+        let config =
+            Aws.Subnet.SubnetConfig(
+                VpcId = vpc.Id,
+                CidrBlock = cidr,
+                AvailabilityZoneId = azId,
+                Tags = createTagWithName name
+            )
+
+        Aws.Subnet.Subnet(self, name, config)
+
+    member self.NewPublicRouteTable
+        (subnet: Aws.Subnet.Subnet, gateway: Aws.InternetGateway.InternetGateway)
+        : Aws.RouteTable.RouteTable =
         let name = subnet.TagsInput.Item("Name")
 
-        let routes = [| RouteTableRoute(CidrBlock = "0.0.0.0/0", GatewayId = gateway.Id) |]
+        let routes =
+            [| Aws.RouteTable.RouteTableRoute(CidrBlock = "0.0.0.0/0", GatewayId = gateway.Id) |]
 
         let config =
-            RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName (name))
+            Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName (name))
 
-        RouteTable(self, $"rt-{name}", config)
+        Aws.RouteTable.RouteTable(self, $"rt-{name}", config)
 
-    member self.NewPrivateRouteTable(subnet: Subnet, nat: NatGateway) : RouteTable =
+    member self.NewPrivateRouteTable
+        (subnet: Aws.Subnet.Subnet, nat: Aws.NatGateway.NatGateway)
+        : Aws.RouteTable.RouteTable =
         let name = subnet.TagsInput.Item("Name")
 
-        let routes = [| RouteTableRoute(CidrBlock = "0.0.0.0/0", NatGatewayId = nat.Id) |]
+        let routes =
+            [| Aws.RouteTable.RouteTableRoute(CidrBlock = "0.0.0.0/0", NatGatewayId = nat.Id) |]
 
         let config =
-            RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName name)
+            Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName name)
 
-        RouteTable(self, $"rt-{name}", config)
+        Aws.RouteTable.RouteTable(self, $"rt-{name}", config)
 
-    member self.NewEip(name: string) : Eip =
-        let config = EipConfig(Domain = "vpc")
+    member self.NewEip(name: string) : Aws.Eip.Eip =
+        let config = Aws.Eip.EipConfig(Domain = "vpc")
 
-        Eip(self, name, config)
+        Aws.Eip.Eip(self, name, config)
 
-    member self.NewNatGateway(name: string, eip: Eip, subnet: Subnet) : NatGateway =
+    member self.NewNatGateway(name: string, eip: Aws.Eip.Eip, subnet: Aws.Subnet.Subnet) : Aws.NatGateway.NatGateway =
         let config =
-            NatGatewayConfig(AllocationId = eip.Id, SubnetId = subnet.Id, Tags = createTagWithName name)
+            Aws.NatGateway.NatGatewayConfig(AllocationId = eip.Id, SubnetId = subnet.Id, Tags = createTagWithName name)
 
-        NatGateway(self, name, config)
+        Aws.NatGateway.NatGateway(self, name, config)
