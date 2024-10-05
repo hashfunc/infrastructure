@@ -23,7 +23,7 @@ let createTagWithName name = Map [ ("Name", name) ]
 type RouteTable(scope: Construct, name: string, config: Aws.RouteTable.RouteTableConfig) =
     member self.instance = Aws.RouteTable.RouteTable(scope, name, config)
 
-    member self.Associcate(subnetId: string) =
+    member self.Associate(subnetId: string) =
         let config =
             Aws.RouteTableAssociation.RouteTableAssociationConfig(SubnetId = subnetId, RouteTableId = self.instance.Id)
 
@@ -93,7 +93,7 @@ type VPCStack(scope: Construct, id: string) as self =
         let config =
             Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName (name))
 
-        RouteTable(self, $"rt-{name}", config).Associcate(subnet.Id)
+        RouteTable(self, $"rt-{name}", config).Associate(subnet.Id)
 
     member self.NewPrivateRouteTable(subnet: Aws.Subnet.Subnet, nat: Aws.NatGateway.NatGateway) =
         let name = subnet.TagsInput.Item("Name")
@@ -104,7 +104,7 @@ type VPCStack(scope: Construct, id: string) as self =
         let config =
             Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName name)
 
-        RouteTable(self, $"rt-{name}", config).Associcate(subnet.Id)
+        RouteTable(self, $"rt-{name}", config).Associate(subnet.Id)
 
     member self.NewEip(name: string) : Aws.Eip.Eip =
         let config = Aws.Eip.EipConfig(Domain = "vpc")
