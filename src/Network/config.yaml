@@ -1,0 +1,11 @@
+vpc:
+  region: "ap-northeast-2"
+  cidr: "10.192.0.0/16"
+  azs:
+  - "apne2-az1"
+  - "apne2-az3"
+  subnets:
+  - name: "private-main"
+    cidr: "10.192.192.0/22"
+  - name: "public-main"
+    cidr: "10.192.0.0/22"

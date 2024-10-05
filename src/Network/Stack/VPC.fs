@@ -1,22 +1,18 @@
-module Stack
+module Stack.VPC
 
 open Constructs
 open HashiCorp.Cdktf
 open HashiCorp.Cdktf.Providers
 
-[<Literal>]
-let DEFAULT_AWS_REGION = "ap-northeast-2"
+type Subnet() =
+    member val name: string = "" with get, set
+    member val cidr: string = "" with get, set
 
-[<Literal>]
-let DEFAULT_VPC_CIDR = "10.192.0.0/16"
-
-let DEFAULT_SUBNET_LIST =
-    [| {| Name = "private-main"
-          Cidr = "10.192.192.0/22" |}
-       {| Name = "public-main"
-          Cidr = "10.192.0.0/22" |} |]
-
-let DEFAULT_AZ_ID_LIST = [| "apne2-az1"; "apne2-az3" |]
+type VpcConfig() =
+    member val region: string = "" with get, set
+    member val cidr: string = "" with get, set
+    member val azs: string[] = [||] with get, set
+    member val subnets: Subnet[] = [||] with get, set
 
 let createTagWithName name = Map [ ("Name", name) ]
 
@@ -30,11 +26,11 @@ type RouteTable(scope: Construct, name: string, config: Aws.RouteTable.RouteTabl
         Aws.RouteTableAssociation.RouteTableAssociation(scope, $"{name}-default", config)
         |> ignore
 
-type VPCStack(scope: Construct, id: string) as self =
+type VPCStack(scope: Construct, id: string, config: VpcConfig) as self =
     inherit TerraformStack(scope, id)
 
     do
-        Aws.Provider.AwsProvider(self, id, Aws.Provider.AwsProviderConfig(Region = DEFAULT_AWS_REGION))
+        Aws.Provider.AwsProvider(self, id, Aws.Provider.AwsProviderConfig(Region = config.region))
         |> ignore
 
         let vpc = self.NewVpc $"vpc-main"
@@ -42,12 +38,12 @@ type VPCStack(scope: Construct, id: string) as self =
         let igw = self.NewInternetGateway($"igw-main", vpc)
 
         let subnets =
-            DEFAULT_SUBNET_LIST
+            config.subnets
             |> Seq.map (fun subnet ->
-                (subnet.Name,
-                 DEFAULT_AZ_ID_LIST
+                (subnet.name,
+                 config.azs
                  |> Seq.mapi (fun index azId ->
-                     self.NewSubnet($"{subnet.Name}-{index}", vpc, azId, Fn.Cidrsubnet(subnet.Cidr, 2, index)))
+                     self.NewSubnet($"{subnet.name}-{index}", vpc, azId, Fn.Cidrsubnet(subnet.cidr, 2, index)))
                  |> Array.ofSeq))
             |> Map.ofSeq
 
@@ -63,7 +59,7 @@ type VPCStack(scope: Construct, id: string) as self =
 
     member self.NewVpc(name: string) : Aws.Vpc.Vpc =
         let config =
-            Aws.Vpc.VpcConfig(CidrBlock = DEFAULT_VPC_CIDR, EnableDnsHostnames = true, Tags = createTagWithName name)
+            Aws.Vpc.VpcConfig(CidrBlock = config.cidr, EnableDnsHostnames = true, Tags = createTagWithName name)
 
         Aws.Vpc.Vpc(self, name, config)
 
@@ -91,7 +87,7 @@ type VPCStack(scope: Construct, id: string) as self =
             [| Aws.RouteTable.RouteTableRoute(CidrBlock = "0.0.0.0/0", GatewayId = gateway.Id) |]
 
         let config =
-            Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName (name))
+            Aws.RouteTable.RouteTableConfig(VpcId = subnet.VpcId, Route = routes, Tags = createTagWithName name)
 
         RouteTable(self, $"rt-{name}", config).Associate(subnet.Id)
 
