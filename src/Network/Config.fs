@@ -15,7 +15,7 @@ let LoadConfig _ =
 
     let deserializer =
         DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .Build()
 
     deserializer.Deserialize<NetworkConfig>(config)

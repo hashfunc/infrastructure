@@ -4,14 +4,18 @@ open Constructs
 open HashiCorp.Cdktf
 open HashiCorp.Cdktf.Providers
 
+type Cidr() =
+    member val cidr: string = "" with get, set
+    member val azId: string = "" with get, set
+
 type Subnet() =
     member val name: string = "" with get, set
-    member val cidr: string = "" with get, set
+    member val scope: string = "" with get, set
+    member val cidrs: Cidr[] = [||] with get, set
 
 type VpcConfig() =
     member val region: string = "" with get, set
     member val cidr: string = "" with get, set
-    member val azs: string[] = [||] with get, set
     member val subnets: Subnet[] = [||] with get, set
 
 let createTagWithName name = Map [ ("Name", name) ]
@@ -40,11 +44,11 @@ type VPCStack(scope: Construct, id: string, config: VpcConfig) as self =
         let subnets =
             config.subnets
             |> Seq.map (fun subnet ->
-                (subnet.name,
-                 config.azs
-                 |> Seq.mapi (fun index azId ->
-                     self.NewSubnet($"{subnet.name}-{index}", vpc, azId, Fn.Cidrsubnet(subnet.cidr, 2, index)))
-                 |> Array.ofSeq))
+                (subnet.name, subnet.cidrs
+                    |> Seq.mapi (fun index cidr ->
+                        let name = $"{subnet.name}-{cidr.azId}-{index}"
+                        self.NewSubnet(name, vpc, cidr.azId, cidr.cidr))
+                    |> Array.ofSeq))
             |> Map.ofSeq
 
         let eip = self.NewEip $"eip-nat-main"
