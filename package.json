@@ -13,8 +13,9 @@
     "watch": "tsc -w",
     "test": "jest",
     "test:watch": "jest --watch",
-    "upgrade": "npm i cdktf@latest cdktf-cli@latest",
-    "upgrade:next": "npm i cdktf@next cdktf-cli@next"
+    "check": "biome check --write .",
+    "upgrade": "pnpm i cdktf@latest cdktf-cli@latest",
+    "upgrade:next": "pnpm i cdktf@next cdktf-cli@next"
   },
   "engines": {
     "node": ">=18.0"
@@ -24,6 +25,7 @@
     "constructs": "^10.4.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.6",
     "jest": "^29.7.0",
