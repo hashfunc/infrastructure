@@ -1,8 +1,8 @@
 import { InternetGateway as AwsInternetGateway } from "@cdktf/provider-aws/lib/internet-gateway";
 
-import { Resource, type ResourceConfig } from "../resource";
+import { Resource } from "../resource";
 
-interface InternetGatewayConfig extends ResourceConfig {
+interface InternetGatewayConfig {
   vpcId: string;
 }
 

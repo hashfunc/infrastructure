@@ -3,11 +3,7 @@ import type { Construct } from "constructs";
 
 const SIGNATURE = process.env.SIGNATURE || "hashfunc";
 
-export abstract class Resource<
-  R extends TerraformResource & WithID,
-  RC extends ResourceConfig,
-> {
-  protected readonly _scope: Construct;
+export abstract class Resource<R extends TerraformResource & WithID, RC> {
   protected readonly _resource: R;
   protected readonly _config: RC;
 
@@ -16,12 +12,15 @@ export abstract class Resource<
   }
 
   public get name() {
-    return this._config.name;
+    return this._name;
   }
 
-  public constructor(scope: Construct, config: RC) {
-    this._scope = scope;
-    this._config = { ...config, ...this._defautTag(config) };
+  public constructor(
+    protected _scope: Construct,
+    private _name: string,
+    config: RC,
+  ) {
+    this._config = { ...config, tags: this._defautTag() };
     this._resource = this._create();
   }
 
@@ -29,10 +28,10 @@ export abstract class Resource<
     return `${this._classNameLowerCase}-${this.name}`;
   }
 
-  protected _defautTag(config: RC) {
+  protected _defautTag() {
     return {
-      Name: config.name,
-      [`${SIGNATURE}/managed`]: this.uid,
+      Name: this.name,
+      [`${SIGNATURE}/uid`]: this.uid,
     };
   }
 
@@ -41,10 +40,6 @@ export abstract class Resource<
   private get _classNameLowerCase() {
     return this.constructor.name.toLocaleLowerCase();
   }
-}
-
-export interface ResourceConfig {
-  name: string;
 }
 
 interface WithID {

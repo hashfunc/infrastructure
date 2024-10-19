@@ -1,1 +1,1 @@
-export { Resource, ResourceConfig } from "./Resource";
+export { Resource } from "./Resource";
