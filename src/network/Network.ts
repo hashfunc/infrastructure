@@ -6,13 +6,15 @@ import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
 import type { NetworkConfig } from "./config";
 import { InternetGateway } from "./InternetGateway";
+import { Subnet, type SubnetConfig } from "./Subnet";
 import { VPC } from "./VPC";
 
 export class NetworkStack extends TerraformStack {
   private _resources: {
     vpc: { [name: string]: VPC };
     internetGateway: { [name: string]: InternetGateway };
-  } = { vpc: {}, internetGateway: {} };
+    subnet: { [name: string]: Subnet };
+  } = { vpc: {}, internetGateway: {}, subnet: {} };
 
   constructor(
     scope: Construct,
@@ -34,15 +36,40 @@ export class NetworkStack extends TerraformStack {
   }
 
   private _createVPC() {
-    this._resources.vpc = keyBy(
-      Object.entries(this._config.vpc).map(([name, config]) => {
-        const vpc = new VPC(this, name, config);
+    merge(
+      this._resources.vpc,
+      keyBy(
+        Object.entries(this._config.vpc).map(([name, config]) => {
+          const vpc = new VPC(this, name, config);
 
-        this._createInternetGateway(vpc.id, config.internetGateway);
+          this._createInternetGateway(vpc.id, config.internetGateway);
+          this._createSubnet(vpc.id, config.subnet);
 
-        return vpc;
-      }),
-      (vpc) => vpc.name,
+          return vpc;
+        }),
+        (vpc) => vpc.name,
+      ),
+    );
+  }
+
+  private _createSubnet(
+    vpcId: string,
+    subets: { [name: string]: SubnetConfig[] },
+  ) {
+    merge(
+      this._resources.subnet,
+      keyBy(
+        Object.entries(subets).flatMap(([name, subnet]) =>
+          subnet.map(
+            (config) =>
+              new Subnet(this, `${name}-${config.availabilityZoneId}`, {
+                ...config,
+                vpcId,
+              }),
+          ),
+        ),
+        (subnet) => subnet.name,
+      ),
     );
   }
 
