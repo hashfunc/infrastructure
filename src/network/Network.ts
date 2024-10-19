@@ -5,6 +5,7 @@ import { keyBy, merge } from "es-toolkit";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
 import type { NetworkConfig } from "./config";
+import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
 import { Subnet, type SubnetConfig } from "./Subnet";
 import { VPC } from "./VPC";
@@ -14,7 +15,8 @@ export class NetworkStack extends TerraformStack {
     vpc: { [name: string]: VPC };
     internetGateway: { [name: string]: InternetGateway };
     subnet: { [name: string]: Subnet };
-  } = { vpc: {}, internetGateway: {}, subnet: {} };
+    eip: { [name: string]: EIP };
+  } = { vpc: {}, internetGateway: {}, subnet: {}, eip: {} };
 
   constructor(
     scope: Construct,
@@ -32,7 +34,18 @@ export class NetworkStack extends TerraformStack {
   }
 
   private _create() {
+    this._createEIP();
     this._createVPC();
+  }
+
+  private _createEIP() {
+    merge(
+      this._resources.eip,
+      keyBy(
+        Object.keys(this._config.eip).map((name) => new EIP(this, name, {})),
+        (eip) => eip.name,
+      ),
+    );
   }
 
   private _createVPC() {

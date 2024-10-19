@@ -1,6 +1,8 @@
 network:
   hashfunc:
     region: "ap-northeast-2"
+    eip:
+      hashfunc-nat-gateway: {}
     vpc:
       hashfunc:
         cidrBlock: "10.16.0.0/16"
