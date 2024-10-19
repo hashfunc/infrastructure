@@ -1,6 +1,7 @@
 import { TerraformStack } from "cdktf";
 import type { Construct } from "constructs";
 import { keyBy, merge } from "es-toolkit";
+import { match } from "ts-pattern";
 
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
@@ -8,6 +9,8 @@ import type { NetworkConfig } from "./config";
 import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
 import { NATGateway } from "./NATGateway";
+import { RouteTable } from "./RouteTable";
+import { RouteTableAssociation } from "./RouteTableAssociation";
 import { Subnet, type SubnetConfig } from "./Subnet";
 import { VPC } from "./VPC";
 
@@ -18,7 +21,15 @@ export class NetworkStack extends TerraformStack {
     subnet: { [name: string]: Subnet };
     eip: { [name: string]: EIP };
     natGateway: { [name: string]: NATGateway };
-  } = { vpc: {}, internetGateway: {}, subnet: {}, eip: {}, natGateway: {} };
+    routeTable: { [name: string]: RouteTable };
+  } = {
+    vpc: {},
+    internetGateway: {},
+    subnet: {},
+    eip: {},
+    natGateway: {},
+    routeTable: {},
+  };
 
   constructor(
     scope: Construct,
@@ -60,6 +71,7 @@ export class NetworkStack extends TerraformStack {
           this._createSubnet(vpc.id, config.subnet);
           this._createInternetGateway(vpc.id, config.internetGateway);
           this._createNatGateway(config.natGateway);
+          this._createRouteTable(vpc.id, config.routeTable);
 
           return vpc;
         }),
@@ -70,7 +82,9 @@ export class NetworkStack extends TerraformStack {
 
   private _createSubnet(
     vpcId: string,
-    subets: { [name: string]: SubnetConfig[] },
+    subets: {
+      [name: string]: Array<SubnetConfig>;
+    },
   ) {
     merge(
       this._resources.subnet,
@@ -86,6 +100,54 @@ export class NetworkStack extends TerraformStack {
         ),
         (subnet) => subnet.name,
       ),
+    );
+  }
+
+  private _createRouteTable(
+    vpcId: string,
+    configs: {
+      [name: string]: {
+        subnet: Array<string>;
+        route: Array<{
+          type: "NAT" | "Internet";
+          cidr: string;
+          target: string;
+        }>;
+      };
+    },
+  ) {
+    const routeTables = Object.entries(configs).map(([name, config]) => {
+      const route = config.route.map((config) =>
+        match(config)
+          .with({ type: "NAT" }, (config) => ({
+            cidrBlock: config.cidr,
+            natGatewayId: this._resources.natGateway[config.target].id,
+          }))
+          .with({ type: "Internet" }, (config) => ({
+            cidrBlock: config.cidr,
+            gatewayId: this._resources.internetGateway[config.target].id,
+          }))
+          .exhaustive(),
+      );
+
+      const routeTable = new RouteTable(this, name, {
+        vpcId,
+        route,
+      });
+
+      config.subnet.forEach((subnet) => {
+        new RouteTableAssociation(this, `${name}-${subnet}`, {
+          routeTableId: routeTable.id,
+          subnetId: this._resources.subnet[subnet].id,
+        });
+      });
+
+      return routeTable;
+    });
+
+    merge(
+      this._resources.routeTable,
+      keyBy(routeTables, (routeTable) => routeTable.name),
     );
   }
 

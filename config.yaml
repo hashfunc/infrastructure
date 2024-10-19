@@ -23,3 +23,20 @@ network:
             availabilityZoneId: "apne2-az1"
           - cidrBlock: "10.16.4.0/22"
             availabilityZoneId: "apne2-az3"
+        routeTable:
+          private-main:
+            subnet:
+            - private-main-apne2-az1
+            - private-main-apne2-az3
+            route:
+            - type: "NAT"
+              cidr: "0.0.0.0/0"
+              target: "public-main-apne2-az1"
+          public-main:
+            subnet:
+            - public-main-apne2-az1
+            - public-main-apne2-az3
+            route:
+            - type: "Internet"
+              cidr: "0.0.0.0/0"
+              target: "hashfunc"

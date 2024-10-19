@@ -9,7 +9,19 @@ export interface NetworkConfig {
     [name: string]: VPCConfig & {
       internetGateway: { [name: string]: object };
       natGateway: { [name: string]: Array<{ subnet: string; eip: string }> };
-      subnet: { [name: string]: Array<SubnetConfig> };
+      subnet: {
+        [name: string]: Array<SubnetConfig>;
+      };
+      routeTable: {
+        [name: string]: {
+          subnet: Array<string>;
+          route: Array<{
+            type: "NAT" | "Internet";
+            cidr: string;
+            target: string;
+          }>;
+        };
+      };
     };
   };
 }
