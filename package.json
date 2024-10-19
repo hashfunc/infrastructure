@@ -21,8 +21,11 @@
     "node": ">=18.0"
   },
   "dependencies": {
+    "@cdktf/provider-aws": "^19.38.1",
     "cdktf": "^0.20.9",
-    "constructs": "^10.4.2"
+    "constructs": "^10.4.2",
+    "es-toolkit": "^1.25.2",
+    "ts-pattern": "^5.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
