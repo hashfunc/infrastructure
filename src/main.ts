@@ -1,10 +1,14 @@
 import { App } from "cdktf";
 
+import { loadConfig } from "./config";
 import { NetworkStack } from "./network";
 
-const SIGNATURE = process.env.SIGNATURE || "hashfunc";
-const REGION = process.env.REGION || "ap-northeast-2";
+const config = loadConfig();
 
 const app = new App();
-new NetworkStack(app, `${SIGNATURE}-network`, { region: REGION });
+
+Object.entries(config.network).map(
+  ([name, config]) => new NetworkStack(app, `network-${name}`, config),
+);
+
 app.synth();

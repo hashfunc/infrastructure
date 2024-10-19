@@ -1,0 +1,6 @@
+network:
+  hashfunc:
+    region: "ap-northeast-2"
+    vpc:
+      hashfunc:
+        cidrBlock: "10.16.0.0/16"
