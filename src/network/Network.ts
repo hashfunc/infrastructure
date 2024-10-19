@@ -5,7 +5,7 @@ import { match } from "ts-pattern";
 
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
-import type { NetworkConfig } from "./config";
+import type { NetworkConfig } from "./NetworkConfig";
 import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
 import { NATGateway } from "./NATGateway";

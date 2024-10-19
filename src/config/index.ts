@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 
-import type { NetworkConfig } from "../network/config";
+import type { NetworkConfig } from "../network/NetworkConfig";
 
 interface Conifg {
   network: { [name: string]: NetworkConfig };
