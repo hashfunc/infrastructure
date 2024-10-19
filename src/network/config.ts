@@ -2,5 +2,7 @@ import type { VPCConfig } from "./VPC";
 
 export interface NetworkConfig {
   region: string;
-  vpc: { [name: string]: VPCConfig };
+  vpc: {
+    [name: string]: VPCConfig & { internetGateway: { [name: string]: object } };
+  };
 }

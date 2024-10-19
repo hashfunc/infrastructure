@@ -1,16 +1,18 @@
 import { TerraformStack } from "cdktf";
 import type { Construct } from "constructs";
+import { keyBy, merge } from "es-toolkit";
 
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
 import type { NetworkConfig } from "./config";
+import { InternetGateway } from "./InternetGateway";
 import { VPC } from "./VPC";
-import { keyBy } from "es-toolkit";
 
 export class NetworkStack extends TerraformStack {
-  private resources: {
+  private _resources: {
     vpc: { [name: string]: VPC };
-  } = { vpc: {} };
+    internetGateway: { [name: string]: InternetGateway };
+  } = { vpc: {}, internetGateway: {} };
 
   constructor(
     scope: Construct,
@@ -32,11 +34,30 @@ export class NetworkStack extends TerraformStack {
   }
 
   private _createVPC() {
-    this.resources.vpc = keyBy(
-      Object.entries(this._config.vpc).map(
-        ([name, config]) => new VPC(this, name, config),
-      ),
+    this._resources.vpc = keyBy(
+      Object.entries(this._config.vpc).map(([name, config]) => {
+        const vpc = new VPC(this, name, config);
+
+        this._createInternetGateway(vpc.id, config.internetGateway);
+
+        return vpc;
+      }),
       (vpc) => vpc.name,
+    );
+  }
+
+  private _createInternetGateway(
+    vpcId: string,
+    config: { [name: string]: object },
+  ) {
+    merge(
+      this._resources.internetGateway,
+      keyBy(
+        Object.keys(config).map(
+          (name) => new InternetGateway(this, name, { vpcId }),
+        ),
+        (internetGateway) => internetGateway.name,
+      ),
     );
   }
 }

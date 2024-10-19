@@ -2,7 +2,7 @@ import { InternetGateway as AwsInternetGateway } from "@cdktf/provider-aws/lib/i
 
 import { Resource } from "../resource";
 
-interface InternetGatewayConfig {
+export interface InternetGatewayConfig {
   vpcId: string;
 }
 

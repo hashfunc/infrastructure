@@ -4,3 +4,5 @@ network:
     vpc:
       hashfunc:
         cidrBlock: "10.16.0.0/16"
+        internetGateway:
+          hashfunc: {}
