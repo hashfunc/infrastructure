@@ -1,7 +1,7 @@
 import type { TerraformResource } from "cdktf";
 import type { Construct } from "constructs";
 
-const SIGNATURE = process.env.SIGNATURE || "hashfunc/infrastructure";
+const SIGNATURE = process.env.SIGNATURE || "hashfunc";
 
 export abstract class Resource<
   R extends TerraformResource & WithID,
@@ -32,7 +32,7 @@ export abstract class Resource<
   protected _defautTag(config: RC) {
     return {
       Name: config.name,
-      [SIGNATURE]: "managed",
+      [`${SIGNATURE}/managed`]: this.uid,
     };
   }
 
