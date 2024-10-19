@@ -2,12 +2,16 @@ network:
   hashfunc:
     region: "ap-northeast-2"
     eip:
-      hashfunc-nat-gateway: {}
+      hashfunc-nat-gateway-apne2-az1: {}
     vpc:
       hashfunc:
         cidrBlock: "10.16.0.0/16"
         internetGateway:
           hashfunc: {}
+        natGateway:
+          public-main-apne2-az1:
+          - subnet: public-main-apne2-az1
+            eip: hashfunc-nat-gateway-apne2-az1
         subnet:
           private-main:
           - cidrBlock: "10.16.16.0/22"

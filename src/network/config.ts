@@ -8,7 +8,8 @@ export interface NetworkConfig {
   vpc: {
     [name: string]: VPCConfig & {
       internetGateway: { [name: string]: object };
-      subnet: { [name: string]: SubnetConfig[] };
+      natGateway: { [name: string]: Array<{ subnet: string; eip: string }> };
+      subnet: { [name: string]: Array<SubnetConfig> };
     };
   };
 }

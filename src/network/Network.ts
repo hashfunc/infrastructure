@@ -7,6 +7,7 @@ import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import type { NetworkConfig } from "./config";
 import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
+import { NATGateway } from "./NATGateway";
 import { Subnet, type SubnetConfig } from "./Subnet";
 import { VPC } from "./VPC";
 
@@ -16,7 +17,8 @@ export class NetworkStack extends TerraformStack {
     internetGateway: { [name: string]: InternetGateway };
     subnet: { [name: string]: Subnet };
     eip: { [name: string]: EIP };
-  } = { vpc: {}, internetGateway: {}, subnet: {}, eip: {} };
+    natGateway: { [name: string]: NATGateway };
+  } = { vpc: {}, internetGateway: {}, subnet: {}, eip: {}, natGateway: {} };
 
   constructor(
     scope: Construct,
@@ -55,8 +57,9 @@ export class NetworkStack extends TerraformStack {
         Object.entries(this._config.vpc).map(([name, config]) => {
           const vpc = new VPC(this, name, config);
 
-          this._createInternetGateway(vpc.id, config.internetGateway);
           this._createSubnet(vpc.id, config.subnet);
+          this._createInternetGateway(vpc.id, config.internetGateway);
+          this._createNatGateway(config.natGateway);
 
           return vpc;
         }),
@@ -97,6 +100,26 @@ export class NetworkStack extends TerraformStack {
           (name) => new InternetGateway(this, name, { vpcId }),
         ),
         (internetGateway) => internetGateway.name,
+      ),
+    );
+  }
+
+  private _createNatGateway(natGateways: {
+    [name: string]: Array<{ subnet: string; eip: string }>;
+  }) {
+    merge(
+      this._resources.natGateway,
+      keyBy(
+        Object.entries(natGateways).flatMap(([name, natGateway]) =>
+          natGateway.map(
+            (config) =>
+              new NATGateway(this, name, {
+                allocationId: this._resources.eip[config.eip].id,
+                subnetId: this._resources.subnet[config.subnet].id,
+              }),
+          ),
+        ),
+        (natGateway) => natGateway.name,
       ),
     );
   }
