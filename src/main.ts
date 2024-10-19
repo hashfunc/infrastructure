@@ -1,7 +1,10 @@
-import { App, TerraformStack } from "cdktf";
+import { App } from "cdktf";
 
-class MyStack extends TerraformStack {}
+import { NetworkStack } from "./network";
+
+const SIGNATURE = process.env.SIGNATURE || "hashfunc";
+const REGION = process.env.REGION || "ap-northeast-2";
 
 const app = new App();
-new MyStack(app, "infrastructure");
+new NetworkStack(app, `${SIGNATURE}-network`, { region: REGION });
 app.synth();
