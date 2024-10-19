@@ -1,27 +1,26 @@
-import type { EIP } from "./EIP";
 import type { SubnetConfig } from "./Subnet";
 import type { VPCConfig } from "./VPC";
 
 export interface NetworkConfig {
   region: string;
-  eip: { [name: string]: EIP };
-  vpc: {
-    [name: string]: VPCConfig & {
-      internetGateway: { [name: string]: object };
-      natGateway: { [name: string]: Array<{ subnet: string; eip: string }> };
-      subnet: {
-        [name: string]: Array<SubnetConfig>;
-      };
-      routeTable: {
-        [name: string]: {
+  eip: Record<string, object>;
+  vpc: Record<
+    string,
+    VPCConfig & {
+      internetGateway: Record<string, object>;
+      natGateway: Record<string, Array<{ subnet: string; eip: string }>>;
+      subnet: Record<string, Array<SubnetConfig>>;
+      routeTable: Record<
+        string,
+        {
           subnet: Array<string>;
           route: Array<{
             type: "NAT" | "Internet";
             cidr: string;
             target: string;
           }>;
-        };
-      };
-    };
-  };
+        }
+      >;
+    }
+  >;
 }

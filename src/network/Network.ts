@@ -16,19 +16,19 @@ import { VPC } from "./VPC";
 
 export class NetworkStack extends TerraformStack {
   private _resources: {
-    vpc: { [name: string]: VPC };
-    internetGateway: { [name: string]: InternetGateway };
-    subnet: { [name: string]: Subnet };
-    eip: { [name: string]: EIP };
-    natGateway: { [name: string]: NATGateway };
-    routeTable: { [name: string]: RouteTable };
+    vpc: Record<string, VPC>;
+    internetGateway: Record<string, InternetGateway>;
+    subnet: Record<string, Subnet>;
+    eip: Record<string, EIP>;
+    natGateway: Record<string, NATGateway>;
+    routeTable: Record<string, RouteTable>;
   } = {
-    vpc: {},
-    internetGateway: {},
-    subnet: {},
-    eip: {},
-    natGateway: {},
-    routeTable: {},
+    vpc: {} as Record<string, VPC>,
+    internetGateway: {} as Record<string, InternetGateway>,
+    subnet: {} as Record<string, Subnet>,
+    eip: {} as Record<string, EIP>,
+    natGateway: {} as Record<string, NATGateway>,
+    routeTable: {} as Record<string, RouteTable>,
   };
 
   constructor(
@@ -82,9 +82,7 @@ export class NetworkStack extends TerraformStack {
 
   private _createSubnet(
     vpcId: string,
-    subets: {
-      [name: string]: Array<SubnetConfig>;
-    },
+    subets: Record<string, Array<SubnetConfig>>,
   ) {
     merge(
       this._resources.subnet,
@@ -105,16 +103,17 @@ export class NetworkStack extends TerraformStack {
 
   private _createRouteTable(
     vpcId: string,
-    configs: {
-      [name: string]: {
+    configs: Record<
+      string,
+      {
         subnet: Array<string>;
         route: Array<{
           type: "NAT" | "Internet";
           cidr: string;
           target: string;
         }>;
-      };
-    },
+      }
+    >,
   ) {
     const routeTables = Object.entries(configs).map(([name, config]) => {
       const route = config.route.map((config) =>
@@ -153,7 +152,7 @@ export class NetworkStack extends TerraformStack {
 
   private _createInternetGateway(
     vpcId: string,
-    config: { [name: string]: object },
+    config: Record<string, object>,
   ) {
     merge(
       this._resources.internetGateway,
@@ -166,9 +165,9 @@ export class NetworkStack extends TerraformStack {
     );
   }
 
-  private _createNatGateway(natGateways: {
-    [name: string]: Array<{ subnet: string; eip: string }>;
-  }) {
+  private _createNatGateway(
+    natGateways: Record<string, Array<{ subnet: string; eip: string }>>,
+  ) {
     merge(
       this._resources.natGateway,
       keyBy(
