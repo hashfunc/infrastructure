@@ -3,7 +3,10 @@ import type { Construct } from "constructs";
 
 const SIGNATURE = process.env.SIGNATURE || "hashfunc";
 
-export abstract class Resource<R extends TerraformResource & WithID, RC> {
+export abstract class Resource<
+  R extends TerraformResource & WithID = TerraformResource & WithID,
+  RC = unknown,
+> {
   protected readonly _resource: R;
   protected readonly _config: RC;
 

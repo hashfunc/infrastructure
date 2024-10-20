@@ -5,6 +5,8 @@ import { match } from "ts-pattern";
 
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
+import type { Resource } from "../resource";
+
 import type { NetworkConfig } from "./NetworkConfig";
 import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
@@ -14,21 +16,25 @@ import { RouteTableAssociation } from "./RouteTableAssociation";
 import { Subnet, type SubnetConfig } from "./Subnet";
 import { VPC } from "./VPC";
 
+type NetworkResource =
+  | "eip"
+  | "internetGateway"
+  | "natGateway"
+  | "routeTable"
+  | "subnet"
+  | "vpc";
+
 export class NetworkStack extends TerraformStack {
-  private _resources: {
-    vpc: Record<string, VPC>;
-    internetGateway: Record<string, InternetGateway>;
-    subnet: Record<string, Subnet>;
-    eip: Record<string, EIP>;
-    natGateway: Record<string, NATGateway>;
-    routeTable: Record<string, RouteTable>;
-  } = {
-    vpc: {} as Record<string, VPC>,
-    internetGateway: {} as Record<string, InternetGateway>,
-    subnet: {} as Record<string, Subnet>,
-    eip: {} as Record<string, EIP>,
-    natGateway: {} as Record<string, NATGateway>,
-    routeTable: {} as Record<string, RouteTable>,
+  private readonly _resources: Record<
+    NetworkResource,
+    Record<string, Resource>
+  > = {
+    eip: {},
+    internetGateway: {},
+    natGateway: {},
+    routeTable: {},
+    subnet: {},
+    vpc: {},
   };
 
   constructor(
