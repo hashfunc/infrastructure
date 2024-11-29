@@ -23,6 +23,9 @@ network:
             availabilityZoneId: "apne2-az1"
           - cidrBlock: "10.16.104.0/22"
             availabilityZoneId: "apne2-az3"
+          public-gateway:
+          - cidrBlock: "10.16.16.16/28"
+            availabilityZoneId: "apne2-az1"
         routeTable:
           private-main:
             subnet:
