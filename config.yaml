@@ -3,6 +3,7 @@ network:
     region: "ap-northeast-2"
     eip:
       hashfunc-nat-gateway-apne2-az1: {}
+      hashfunc-gateway-apne2-az1: {}
     vpc:
       hashfunc:
         cidrBlock: "10.16.0.0/16"
