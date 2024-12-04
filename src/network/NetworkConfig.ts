@@ -1,3 +1,4 @@
+import type { NLBConfig } from "./NLB";
 import type { SubnetConfig } from "./Subnet";
 import type { VPCConfig } from "./VPC";
 
@@ -21,6 +22,7 @@ export interface NetworkConfig {
           }>;
         }
       >;
+      nlb?: Record<string, NLBConfig>;
     }
   >;
 }

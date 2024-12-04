@@ -44,3 +44,7 @@ network:
             - type: "Internet"
               cidr: "0.0.0.0/0"
               target: "hashfunc"
+        nlb:
+          public-gateway:
+            subnets:
+            - public-gateway-apne2-az1

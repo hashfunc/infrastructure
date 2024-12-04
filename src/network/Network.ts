@@ -11,6 +11,7 @@ import type { NetworkConfig } from "./NetworkConfig";
 import { EIP } from "./EIP";
 import { InternetGateway } from "./InternetGateway";
 import { NATGateway } from "./NATGateway";
+import { NLB, type NLBConfig } from "./NLB";
 import { RouteTable } from "./RouteTable";
 import { RouteTableAssociation } from "./RouteTableAssociation";
 import { Subnet, type SubnetConfig } from "./Subnet";
@@ -78,6 +79,10 @@ export class NetworkStack extends TerraformStack {
           this._createInternetGateway(vpc.id, config.internetGateway);
           this._createNatGateway(config.natGateway);
           this._createRouteTable(vpc.id, config.routeTable);
+
+          if (config.nlb) {
+            this._createNLB(config.nlb);
+          }
 
           return vpc;
         }),
@@ -189,5 +194,15 @@ export class NetworkStack extends TerraformStack {
         (natGateway) => natGateway.name,
       ),
     );
+  }
+
+  private _createNLB(nlb: Record<string, NLBConfig>) {
+    Object.entries(nlb).map(([name, config]) => {
+      const subnets = config.subnets?.map(
+        (subnet) => this._resources.subnet[subnet].id,
+      );
+
+      new NLB(this, name, { ...config, subnets });
+    });
   }
 }
